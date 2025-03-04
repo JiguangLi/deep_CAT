@@ -16,7 +16,7 @@ termination without sacrificing measurement accuracy. This efficiency is especia
 in high-stakes diagnostic settings, such as clinical psychology, where CAT can serve as an
 alternative to in-person evaluations, helping to expand access to assessments in resource limited environments.
 
-# Why this work?
+# Why Using Our CAT System?
 
 - We propose a double deep Q-learning algorithm to learn the optimal item selection policy from a given item bank. Experiments have shown our Q-learning approach leads to much faster posterior variance reduction, and enables earlier termination. Thinking from a reinforcement learning perspective is essential as existing item selection rules have three main limitations: 
   - (1) they rely on one-step lookahead greedy optimization of an information-theoretic criterion. While easy to implement, such myopic strategies fail to account for subsequent decisions, leading to suboptimal adaptive testing policies.

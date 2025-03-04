@@ -1,0 +1,19 @@
+Metadata-Version: 2.1
+Name: bayesian_cat
+Version: 0.0.0a0
+Summary: Bayesian Computerized Adaptive Testings
+Home-page: https://placeholder.com
+Author: jiguang_li
+Author-email: jiguang@chicagobooth.edu
+Classifier: Development Status :: 1 - Planning
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: Other/Proprietary License
+Classifier: Natural Language :: English
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: numpy
+Requires-Dist: pandas
+
+# Bayesian Computerized Adaptive Testing

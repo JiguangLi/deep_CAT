@@ -2,7 +2,7 @@
 
 This repo contains the official Python implementation of our proposed Deep CAT system, as illustrated in our paper *Deep Computerized Adaptive Testing*: (https://arxiv.org/pdf/2502.19275). The underlying latent variable model is assumed to be the two-parameter Bayesian Multidimensional Item Response Theory (MIRT) Model. 
 
-In additional to our Deep Q-learning approaches, we also implement common Bayesian item selection rules as described in Section 3.2 of the paper (such as Maximizing Mutual Information). Our approaches can direct sample from the latent factor posterior distributions, thereby eliminating the need for computationally expensive MCMC sampling, which cannot be easily pararalized and requires
+In additional to our Deep Q-learning approaches, we also implement common Bayesian item selection rules as described in Section 3.2 of the paper (such as Maximizing Mutual Information). Our approaches can direct sample from the latent factor posterior distributions, thereby eliminating the need for computationally expensive MCMC sampling, which cannot be easily pararalized and requires additional tuning steps.
 
 # What is CAT?
 It is an adaptive testing system primarily used in behavior health (such as detecting cognitive impaitment) or in educational assessment (think of GRE).

@@ -1,6 +1,6 @@
 # Deep Computerized Adaptive Testing (CAT)
 
-This repo contains the official Python implementation of our proposed Deep CAT system from binary item response data, as illustrated in our paper *Deep Computerized Adaptive Testing*: (https://arxiv.org/pdf/2502.19275). The underlying latent variable model is assumed to be the two-parameter Bayesian Multidimensional Item Response Theory (MIRT) Model. 
+This repo contains the official Python implementation of our proposed Deep CAT system, as illustrated in our paper *Deep Computerized Adaptive Testing*: (https://arxiv.org/pdf/2502.19275). The underlying latent variable model is assumed to be the two-parameter Bayesian Multidimensional Item Response Theory (MIRT) Model. 
 
 In additional to our Deep Q-learning approaches, we also implement common Bayesian item selection rules as described in Section 3.2 of the paper (such as Maximizing Mutual Information). Our approaches can direct sample from the latent factor posterior distributions, thereby eliminating the need for computationally expensive MCMC sampling, which cannot be easily pararalized and requires
 
@@ -47,23 +47,26 @@ The following directories are especially helpful:
 # Experiment Replications
 
 
-1. **Section 6.1 (simulation)**: Navigate to the ```project/standarized_simulation``` folder.
-   2. Run script ```s01_generate_sim_params.py``` to generate simulation parameters.
-   3. Run sript ```s02_fit_non_rl_models.py``` to run existing benchmarks
-   4. Run Script ```project/deep_q_learning/s03_online_deep_q_learning.py``` to run double deep Q-learning algorithm. Expect 3 days on a single GPU.
-   5. Run script ```project/deep_q_learning/s04_evaluate_online_q_network.py``` to evaluate Q-learning
-   6. Run markdown ```markdowns/simulatio_markdown/paper_version_5factor_first3.ipynb``` to generate figures and tables.
+1. **Section 6.1 (simulation)**: Navigate to the ```project/standarized_simulation``` folder:
 
-2. **Section 6.2 (Cognitive Assessment)**: Navigate to the ```project/cat_cog_experiment``` folder.
-   2. Run script ```s01_fit_bifactor_model.py``` to obtain item bank item parameters.
-   3. Run sript ```s02_fit_non_rl_models.py``` to run existing benchmarks
-   4. Run Script ```03_online_deep_q_learning.py``` to run double deep Q-learning algorithm. Expect 2 days on a single GPU.
-   5. Run script ```s05_evaluate_online_q_network.py``` to evaluate Q-learning
-   6. Run markdown ```markdowns/cat_cog_markdown/paper_version_new.ipynb``` to generate figures and tables.
+   - Run script ```s01_generate_sim_params.py``` to generate simulation parameters.
+   - Run sript ```s02_fit_non_rl_models.py``` to run existing benchmarks
+   - Run Script ```project/deep_q_learning/s03_online_deep_q_learning.py``` to run double deep Q-learning algorithm. Expect 3 days on a single GPU.
+   - Run script ```project/deep_q_learning/s04_evaluate_online_q_network.py``` to evaluate Q-learning
+   - Run markdown ```markdowns/simulatio_markdown/paper_version_5factor_first3.ipynb``` to generate figures and tables.
 
-3. **Section 6.3 (Educational Assessment)**: Navigate to the ```project/dese_experiment``` folder.
-   2. Run script ```s02_fit_dese_data.R``` to obtain item bank item parameters.
-   3. Run sript ```s03_fit_non_rl_models.py``` to run existing benchmarks
-   4. Run Script ```04_online_deep_q_learning.py``` to run double deep Q-learning algorithm. Expect 2 days on a single GPU.
-   5. Run script ```s06_evaluate_online_q_network.py``` to evaluate Q-learning
-   6. Run markdown ```markdowns/dese_markdown/paper_dese.ipynb``` to generate figures and tables.
+2. **Section 6.2 (Cognitive Assessment)**: Navigate to the ```project/cat_cog_experiment``` folder:
+
+   - Run script ```s01_fit_bifactor_model.py``` to obtain item bank item parameters.
+   - Run sript ```s02_fit_non_rl_models.py``` to run existing benchmarks
+   - Run Script ```03_online_deep_q_learning.py``` to run double deep Q-learning algorithm. Expect 2 days on a single GPU.
+   - Run script ```s05_evaluate_online_q_network.py``` to evaluate Q-learning
+   - Run markdown ```markdowns/cat_cog_markdown/paper_version_new.ipynb``` to generate figures and tables.
+
+3. **Section 6.3 (Educational Assessment)**: Navigate to the ```project/dese_experiment``` folder:
+
+   - Run script ```s02_fit_dese_data.R``` to obtain item bank item parameters.
+   - Run sript ```s03_fit_non_rl_models.py``` to run existing benchmarks
+   - Run Script ```04_online_deep_q_learning.py``` to run double deep Q-learning algorithm. Expect 2 days on a single GPU.
+   - Run script ```s06_evaluate_online_q_network.py``` to evaluate Q-learning
+   - Run markdown ```markdowns/dese_markdown/paper_dese.ipynb``` to generate figures and tables.

@@ -201,9 +201,11 @@ class TestTakers:
         cur_mean = np.mean(samples, axis=1)
         self.pos_mean[item_idx] = cur_mean
 
-    def get_pos_pred(self, item_idx: int, num_samples: int, alphas: np.ndarray, intercepts: np.ndarray):
+    def get_pos_pred(self, item_idx: int, num_samples: int, alphas: np.ndarray, intercepts: np.ndarray, subset = None):
         """Get posterior prediction probabilities"""
         samples = self.get_factor_samples(num_samples) # (n, num_samples, k)
+        if subset is not None:
+            samples = samples[:, :, subset]
         m = alphas.shape[0]
         preds = np.zeros((self.n, m-item_idx))
         for i in range(self.n):

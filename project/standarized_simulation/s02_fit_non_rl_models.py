@@ -14,13 +14,12 @@ def parse_args(verbose: bool = False) -> typing.Dict[str, typing.Any]:
     parser.add_argument("--config_filepath",
                         default= pathlib.Path.home().joinpath(pathlib.Path("bayesian-cat", "config", "config.yaml")))
     parser.add_argument("--verbose", default=True)
-    parser.add_argument("--input_data_name", default="x09_s01_mixed_grid_500_200_5_4.pickle")
+    parser.add_argument("--input_data_name", default="x01_lower_triag_500_150_5_4.pickle")
     parser.add_argument("--max_items", default=50, help="after how many items to stop")
     parser.add_argument("--sir_start", default=1, help="after how many items to do posterior reweighting")
     parser.add_argument("--mc_samples", default=500)
-    parser.add_argument("--sir_large_samples", default=750)
+    parser.add_argument("--sir_large_samples", default=500)
     parser.add_argument("--sir_samples", default=500)
-    parser.add_argument("--dim", default=3)
     parser.add_argument("--num_workers", default=8)
     parser.add_argument("--seed", default=42)
     arguments = vars(parser.parse_args())
@@ -46,7 +45,7 @@ if __name__ == "__main__":
     selection_rules = ["kl_eap", "kl_pos", "mi_sir", "predictive_variance_e"]
     for rule in selection_rules:
         print(rule)
-        model = bcat.BayesianCAT(true_thetas=test_params["thetas"][:2],
+        model = bcat.BayesianCAT(true_thetas=test_params["thetas"],
                                  test_bank=test_params,
                                  selection_criterion=rule,
                                  max_items=arguments["max_items"],
@@ -56,7 +55,7 @@ if __name__ == "__main__":
                                  num_workers=arguments["num_workers"],
                                  random_state=arguments["seed"])
         model.simulate()
-        filename = "testings_standarized_5_factor_mixed_s02_{}_{}.pickle".format(rule, arguments["max_items"])
+        filename = "testings_standarized_5_factor_trig_s02_{}_{}.pickle".format(rule, arguments["max_items"])
         model_output_dir = pathlib.Path(arguments["sim_models_dir"])
         with open(model_output_dir.joinpath(filename), 'wb') as handle:
             pickle.dump(model, handle, pickle.HIGHEST_PROTOCOL)

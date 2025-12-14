@@ -14,7 +14,7 @@ def parse_args(verbose: bool = False) -> typing.Dict[str, typing.Any]:
                         default= pathlib.Path.home().joinpath(pathlib.Path("bayesian-cat", "config", "config.yaml")))
     parser.add_argument("--verbose", default=True)
     # x09_s01_mixed_grid_500_150_3_2.pickle
-    parser.add_argument("--input_data_name", default="x09_s01_mixed_grid_500_200_5_4.pickle")
+    parser.add_argument("--input_data_name", default="x01_lower_triag_500_150_5_4.pickle")
     parser.add_argument("--max_items", default=50, help="after how many items to stop")
     parser.add_argument("--sir_start", default=1, help="after how many items to do posterior reweighting")
     parser.add_argument("--mc_samples", default=500)
@@ -41,10 +41,11 @@ if __name__ == "__main__":
     with open(data_input_dir, 'rb') as handle:
         test_params = pickle.load(handle)
     #Input trained NN directory
-    file_names = ["retrain_retrainv1_NN_x09_s01_mixed_grid_500_200_5_4_150000_first3-0-1_detailed_v4_1.5e-05_128_30000_1000_0.16/retrain_fn_24000.pt_fn_11000.pt"]
+    file_names = ["retrain_retrainv1_NN_x01_lower_triag_500_150_5_4_150000_first3-0-1_detailed_v4_1.5e-05_128_30000_1000_0.16/retrain_fn_34000.pt_fn_38000.pt"]
+    
     for filename in file_names:
         print(filename)
-        nn_input_dir = pathlib.Path(arguments["q_learning_models_dir"]).joinpath("online-Q-network-v4-5-factor-standarized-first3").joinpath(filename)
+        nn_input_dir = pathlib.Path(arguments["q_learning_models_dir"]).joinpath("online-Q-network-v4-5-factor-standarized-first3-triag").joinpath(filename)
         # similuate
         model = bcat.OnlineDeepQCAT(
             true_thetas=test_params["thetas"],
@@ -58,7 +59,7 @@ if __name__ == "__main__":
             random_state=arguments["seed"]
         )
         model.simulate()
-        save_filename = "x09_s03_QCAT_{}_{}_{}_final.pickle".format(arguments["max_items"],filename.split("/")[0], filename.split("/")[1])
+        save_filename = "triag_5_s03_QCAT_{}_{}_{}_final.pickle".format(arguments["max_items"],filename.split("/")[0], filename.split("/")[1])
         model_output_dir = pathlib.Path(arguments["q_learning_models_dir"]).joinpath("Q-CAT")
         with open(model_output_dir.joinpath(save_filename), 'wb') as handle:
             pickle.dump(model, handle, pickle.HIGHEST_PROTOCOL)

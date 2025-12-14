@@ -18,6 +18,7 @@ class BayesianCAT:
             true_response: np.ndarray = None,
             starting_item: typing.Optional[int] = None,
             sir_params: typing.Dict[str, typing.Any] = {},
+            subset: typing.Optional[typing.List[int]] = None,
             num_workers: int = 8,
             random_state: int = 42,
     ):
@@ -53,6 +54,7 @@ class BayesianCAT:
         self.item_selections = np.zeros((self.n, self.max_items))
         self.plugin_response = plugin_response
         self.response = true_response
+        self.subset = subset
         if starting_item:
             self.start = starting_item
         else:
@@ -192,11 +194,17 @@ class BayesianCAT:
         pos_mean = self.tts.pos_mean[item_idx-1] # n by k
         new_samples = self.tts.get_factor_samples(self.mc_samples) # n by num_samples by k
         for i in range(self.n):
-            theta_hat = pos_mean[i].reshape(-1, 1)
-            theta_sampled = new_samples[i] # num_samples by k
             avail_items = np.setdiff1d(np.arange(self.m), self.tts.item_ids[i, :item_idx])
-            p_hat = norm.cdf(self.alphas[avail_items, :] @ theta_hat.flatten() + self.intercepts[avail_items]) # j-dim vec
-            p_sampled = norm.cdf(self.alphas[avail_items, :] @ theta_sampled.T + self.intercepts[avail_items].reshape(-1,1)) # j * mc_samples
+            theta_sampled = new_samples[i] # num_samples by k
+            if self.subset is None:
+                theta_hat = pos_mean[i].reshape(-1, 1)
+                p_hat = norm.cdf(self.alphas[avail_items, :] @ theta_hat.flatten() + self.intercepts[avail_items]) # j-dim vec
+                p_sampled = norm.cdf(self.alphas[avail_items, :] @ theta_sampled.T + self.intercepts[avail_items].reshape(-1,1)) # j * mc_samples
+            else:
+                theta_hat = pos_mean[i][self.subset].reshape(-1, 1) # array of length |subset|
+                theta_sampled = theta_sampled[:, self.subset] # num_samples by |subset|      
+                p_hat = norm.cdf(self.alphas[avail_items][:, self.subset] @ theta_hat.flatten() + self.intercepts[avail_items]) # j-dim vec
+                p_sampled = norm.cdf(self.alphas[avail_items][:, self.subset] @ theta_sampled.T + self.intercepts[avail_items].reshape(-1,1)) # j * mc_samples
             kl_info = p_hat * np.mean(
                 np.log(1/p_sampled * p_hat.reshape(-1, 1)), axis=1) + (1-p_hat) * np.mean(
                 np.log(1/(1-p_sampled) * (1-p_hat).reshape(-1, 1)), axis=1)
@@ -211,9 +219,14 @@ class BayesianCAT:
         new_samples = self.tts.get_factor_samples(self.mc_samples)  # n by num_samples by k
         for i in range(self.n):
             pred_hat = pos_pred[i]
-            theta_sampled = new_samples[i]
             avail_items = all_items[~np.in1d(all_items, self.tts.item_ids[i, :item_idx])]
-            p_sampled = norm.cdf(self.alphas[avail_items, :] @ theta_sampled.T + self.intercepts[avail_items].reshape(-1,1)) # j * mc_samples
+            theta_sampled = new_samples[i]
+            if self.subset is None:
+                p_sampled = norm.cdf(self.alphas[avail_items, :] @ theta_sampled.T + self.intercepts[avail_items].reshape(-1,1)) # j * mc_samples
+            else:
+                theta_sampled = theta_sampled[:, self.subset]
+                p_sampled = norm.cdf(self.alphas[avail_items][:, self.subset] @ theta_sampled.T + self.intercepts[avail_items].reshape(-1,1)) 
+
             kl_term1 = pred_hat * np.mean(np.log(1/p_sampled * pred_hat.reshape(-1,1)), axis=1)
             kl_term2 = (1-pred_hat) * np.mean(np.log(1/(1-p_sampled) * (1-pred_hat).reshape(-1,1)), axis=1)
             result[i] = avail_items[np.argmax(kl_term1+kl_term2)]
@@ -246,22 +259,39 @@ class BayesianCAT:
         """Select Items Based on Mutual Information, but use posterior reweighting to accelerate"""
         result = np.zeros(self.n, dtype=int)
         all_items = np.arange(self.m)
-        pos_pred = self.tts.get_pos_pred(item_idx, self.mc_samples, self.alphas,
-                                         self.intercepts)  # n by num_avail_items
+        if self.subset is None:
+            pos_pred = self.tts.get_pos_pred(item_idx, self.mc_samples, self.alphas,
+                                            self.intercepts)  # n by num_avail_items
+        else:
+            pos_pred = self.tts.get_pos_pred(item_idx, self.mc_samples, self.alphas[:, self.subset],
+                                            self.intercepts, subset=self.subset)
         new_samples = self.tts.get_factor_samples(self.sir_large_samples)  # n by num_sir_samples by k
         for i in range(self.n):
+            avail_items = all_items[~np.in1d(all_items, self.tts.item_ids[i, :item_idx])]
             pred_hat = pos_pred[i]
             theta_sampled = new_samples[i]
-            avail_items = all_items[~np.in1d(all_items, self.tts.item_ids[i, :item_idx])]
-            reweighted_samples = self.tts.get_sir_reweighted_samples(theta_sampled, self.sir_samples,
-                                                                     self.alphas[avail_items, :],
-                                                                     self.intercepts[avail_items])
-            p_sampled0 = 1 - norm.cdf(
-                np.squeeze(np.matmul(reweighted_samples["0"], self.alphas[avail_items, :, np.newaxis]), axis=-1
-                           ) + self.intercepts[avail_items].reshape(-1, 1))  # j by mc samples
-            p_sampled1 = norm.cdf(
-                np.squeeze(np.matmul(reweighted_samples["1"], self.alphas[avail_items, :, np.newaxis]), axis=-1
-                           ) + self.intercepts[avail_items].reshape(-1, 1))  # j by mc samples
+            if self.subset is None:
+                reweighted_samples = self.tts.get_sir_reweighted_samples(theta_sampled, self.sir_samples,
+                                                                        self.alphas[avail_items, :],
+                                                                        self.intercepts[avail_items])
+                p_sampled0 = 1 - norm.cdf(
+                    np.squeeze(np.matmul(reweighted_samples["0"], self.alphas[avail_items, :, np.newaxis]), axis=-1
+                            ) + self.intercepts[avail_items].reshape(-1, 1))  # j by mc samples
+                p_sampled1 = norm.cdf(
+                    np.squeeze(np.matmul(reweighted_samples["1"], self.alphas[avail_items, :, np.newaxis]), axis=-1
+                            ) + self.intercepts[avail_items].reshape(-1, 1))  # j by mc samples
+            else:
+                theta_sampled = theta_sampled[:, self.subset]
+                reweighted_samples = self.tts.get_sir_reweighted_samples(theta_sampled, self.sir_samples,
+                                                                        self.alphas[avail_items][:, self.subset],
+                                                                        self.intercepts[avail_items])
+                subset_alpha = self.alphas[avail_items][:, self.subset]
+                p_sampled1 = norm.cdf(
+                    np.squeeze(np.matmul(reweighted_samples["1"], subset_alpha[:, :, np.newaxis]), axis=-1
+                            ) + self.intercepts[avail_items].reshape(-1, 1))  
+                p_sampled0 = 1 - norm.cdf(
+                    np.squeeze(np.matmul(reweighted_samples["0"], subset_alpha[:, :, np.newaxis]), axis=-1
+                            ) + self.intercepts[avail_items].reshape(-1, 1))  
             mi_term1 = pred_hat * np.mean(np.log(p_sampled1 / pred_hat.reshape(-1, 1)), axis=1)
             mi_term2 = (1 - pred_hat) * np.mean(np.log(p_sampled0 / (1 - pred_hat).reshape(-1, 1)), axis=1)
             result[i] = avail_items[np.argmax(mi_term1 + mi_term2)]
@@ -339,9 +369,13 @@ class BayesianCAT:
         all_items = np.arange(self.m)
         new_samples = self.tts.get_factor_samples(self.mc_samples)  # n by num_sir_samples by k
         for i in range(self.n):
-            theta_sampled = new_samples[i] # s by k
             avail_items = all_items[~np.in1d(all_items, self.tts.item_ids[i, :item_idx])]
-            linear_term = theta_sampled @ self.alphas[avail_items].T + self.intercepts[avail_items]
+            theta_sampled = new_samples[i] # s by k
+            if self.subset is None:
+                linear_term = theta_sampled @ self.alphas[avail_items].T + self.intercepts[avail_items]
+            else: 
+                theta_sampled = theta_sampled[:, self.subset]
+                linear_term = theta_sampled @ self.alphas[avail_items][:, self.subset].T + self.intercepts[avail_items]
             pred = norm.cdf(linear_term) # s by j
             pred_var = np.var(pred, axis = 0)
             result[i] = avail_items[np.argmax(pred_var)]

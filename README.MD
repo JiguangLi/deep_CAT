@@ -40,33 +40,37 @@ import bayesian_cat as bcat
 
 The following directories are especially helpful:
 
-- ```src/bayesian_cat/CAT/bayesian_CAT.py```: contains implementation of existing multivariate CAT item selection rules. Modify the ```selection_criterion``` argument to change the rule. For instance, the item selection rules defined in equations (2), (3), (4), (5) of the paper corresponds to ```kl_eap```,```kl_pos```, ```mi_sir```, ```predictive_variance_e```.
+- ```environment.yaml```: to recreate our conda environment
+- ```src/bayesian_cat/CAT/bayesian_CAT.py```: contains implementation of existing multivariate CAT item selection rules. Modify the ```selection_criterion``` argument to change the rule. For instance, the item selection rules considered in the paper include ```kl_eap```,```kl_pos```, ```mi_sir```, ```predictive_variance_e```.
 - ```src/bayesian_cat/QCAT```: contains the deep Q-learning CAT online deployment ```deep_Q_CAT.py```, neural network architectures ```deep_q_network.py```, episode object during Q-learning ```episode_learner```, and other helper files during Q-learning such as replay buffer.
-- ```src/bayesian_cat/FullyBayesianCAT```: contains the fully-Bayesian version of the item selection rules that also incorporate item parameter uncertainties. See Section 4.2 of the paper.
+- ```src/bayesian_cat/FullyBayesianCAT```: contains the fully-Bayesian version of the item selection rules that also incorporate item parameter uncertainties. See appendix of the paper.
 
 # Experiment Replications
 
 
-1. **Section 6.1 (simulation)**: Navigate to the ```project/standarized_simulation``` folder:
+1. **Section 6 (simulation)**: Navigate to the ```project/standarized_simulation``` folder:
 
-   - Run script ```s01_generate_sim_params.py``` to generate simulation parameters.
-   - Run sript ```s02_fit_non_rl_models.py``` to run existing benchmarks
-   - Run Script ```project/deep_q_learning/s03_online_deep_q_learning.py``` to run double deep Q-learning algorithm. Expect 3 days on a single GPU.
-   - Run script ```project/deep_q_learning/s04_evaluate_online_q_network.py``` to evaluate Q-learning
-   - Run markdown ```markdowns/simulatio_markdown/paper_version_5factor_first3.ipynb``` to generate figures and tables.
+   - Run script ```s01_generate_sim_params.py``` to generate simulation parameters. Here we generated 150 item, 5-factor item parameters. The goal is to accurately assess the first 3 factors while accounting for the prescence of factor 4 and 5.
+   - Run script ```s02_fit_non_rl_models.py``` to run existing benchmarks (Optional). This includes "KL-EAP", "KL-POS", "MI", "Max Var" in the paper. These methods involve integrating over all $5$ factors or interests. Note that after paper revision, we no longer use these benchmarks in the paper, but used the model outputs from ```s05_fit_non_rl_subset.py``` instead.
+   - Run script ```s03_online_deep_q_learning.py``` to run double deep Q-learning algorithm. Expect 2-3 days on a single GPU. The script would output the final neural networks for item selection.
+   - Run Script ```s03_evaluate_online_q_network.py``` to take the neural network as input, and evaluate its performance from simulated online subjects.
+   - Run script ```s05_fit_non_rl_subset.py``` to run existing benchmarks for "KL-EAP", "KL-POS", "MI", "Max Var". The key difference from ```s02_fit_non_rl_models.py``` is that now we only integrated over the first 3 factors of interests while still accounting for the prescence of factors 4 and 5. Given that we wish to accurately assess the first 3 factors,  this is a stronger benchmark than ```s02_fit_non_rl_models.py``` as pointed out by our reviewers. Hence we use model outputs from this script as benchmarks in our paper after revision.
+   - We provide optional script ```s05_retrain_online_deep_q_learning.py``` to continue finetuning the neural networks from ```s03_online_deep_q_learning.py```. This script is not required.
 
-2. **Section 6.2 (Cognitive Assessment)**: Navigate to the ```project/cat_cog_experiment``` folder:
+2. **Section 7 (Cognitive Assessment)**: Navigate to the ```project/cat_cog_experiment``` folder:
 
-   - Run script ```s01_fit_bifactor_model.py``` to obtain item bank item parameters.
-   - Run sript ```s02_fit_non_rl_models.py``` to run existing benchmarks
-   - Run Script ```03_online_deep_q_learning.py``` to run double deep Q-learning algorithm. Expect 2 days on a single GPU.
-   - Run script ```s05_evaluate_online_q_network.py``` to evaluate Q-learning
-   - Run markdown ```markdowns/cat_cog_markdown/paper_version_new.ipynb``` to generate figures and tables.
+   - Run script ```s01_fit_bifactor_model.py``` to obtain item bank item parameters. Alternatively, you can find the items parameters already stored in ```models/cat_cog_models/bifactor_alphas.feather```. Note for this experiemnt, we have a six factor model, but we are interested in the primary cognitive factor, while still taking into account additional 5 factors during experiment.
+   - Run sript ```s02_fit_non_rl_models.py``` (optional) to run existing benchmarks for "KL-EAP", "KL-POS", "MI", "Max Var". Note for the same reasons as in simulation, we did not use these benchmarks after the revision since they are standard baseline integrating over all 6 factors.
+   - Run script ```s03_online_deep_q_learning.py``` to run double deep Q-learning algorithm. Expect 2 days on a single GPU.
+   - Run script ```s05_evaluate_online_q_network.py``` to evaluate Q-learning.
+   - Run script ```s07_fit_non_rl_subset.py``` for baseline methods: "KL-EAP", "KL-POS", "MI", "Max Var". As in Section 6, we modified the standard baseline by only integrating over the primary factors of interest while still accounting for the prescence of additional 5 factors. We use model outputs from this script after the revision.
 
-3. **Section 6.3 (Educational Assessment)**: Navigate to the ```project/dese_experiment``` folder:
 
-   - Run script ```s02_fit_dese_data.R``` to obtain item bank item parameters.
-   - Run sript ```s03_fit_non_rl_models.py``` to run existing benchmarks
-   - Run Script ```04_online_deep_q_learning.py``` to run double deep Q-learning algorithm. Expect 2 days on a single GPU.
-   - Run script ```s06_evaluate_online_q_network.py``` to evaluate Q-learning
-   - Run markdown ```markdowns/dese_markdown/paper_dese.ipynb``` to generate figures and tables.
+   # Table, Figures, and More Visualization.
+
+   - Section 6: To create every figures, statistics, and tables in section 6 of the paper, find the jupyter markdown files in ```markdowns/simulation_markdown_revision/paper_version_5factor_first3.ipynb```. Some evaluation codes may take upto 1 hour to run, but we have commented them out and saved the relevant outputs in the same directory for easier replications. But do feel free to uncomment them out and rerun from scratch.
+
+   - Section 7: To create every figures, statistics, and tables in section 7 of the paper, find the jupyter markdown files in ```markdowns/cat_cog_markdown_v2/paper_version_new.ipynb```. Same as above, some evaluation codes may take upto 1 hour to run, but we have commented them out and saved the relevant outputs in the same directory for easier replications. 
+
+   - We have also uploaded relevant data, baseline models, neural network outputs in the repo. They are in the ```data``` and ```model``` folders respectively.
+

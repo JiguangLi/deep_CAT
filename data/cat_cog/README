@@ -1,0 +1,143 @@
+
+Program POLYBIF:
+
+	Full-Information Item Bi-factor Analysis for Ordinal Response Data
+
+New Features:
+
+	1. Items can load on the primary dimension only
+	2. Zero can be a valid category if izero=1
+	3. Missing data are coded as zero unless izero=1
+	4. Adaptive ridge added to correct divergence when likelihood decreases
+	5. Prior for slopes added
+	6. Different numbers of item categories are permitted
+	7. Both the rating scale model a(j)*theta+b(j)+d(k) 
+	   and the full graded model a(j)*theta+b(j,k) are included
+        8. Items can me deleted within the program (select IMISS=1 (new field)
+           and do not list in domains).
+        9. Scoring of sub-domains.
+
+Release Notes:  To run with previous def files, add IMISS (0 or 1) to the 
+                end of line 3. 
+
+Based on:
+ 
+	Robert D. Gibbons and Donald Hedeker
+	Psychometrika, 57, 423-436, 1992
+
+	Gibbons et.al. Applied Psychological Measurement, 31, 4-19, 2007
+
+Indices:
+
+	l refers to response pattern  (l = 1, ... , nor)
+   	s refers to subtest           (s = 2, ... , h) 
+	j refers to item              (j = 1, ... , n)
+        js refers to item in subset s (js = 1, ... , ns)
+        q refers to quad point        (q = 1, ... , m)
+	t1 refers to category         (t1 = 1, ... , ncat(j))
+
+
+Definitions:
+
+	n             number of items
+	t	      maximum number of categories 		
+	h             number of factors
+	ns(s),s=2,h   number of items loading on each subfactor
+	nor           number of response patterns
+	nit           number of iterations
+	uni           1 = unidimensional model else 2 = bifactor
+	iscr          1 = EAP ability estimates in file *.scr
+	ifreq         1 = patterns and frequency else patterns only
+	izero	      1 = zero is a valid category else zero is missing
+	iprior	      1 = prior else no prior
+	rating        1 = rating scale model else full graded model
+	imiss         1 = items not in domains deleted, else primary only
+
+Notes: 
+
+	1. If izero=1 there can be no missing data
+	2. If rating=1 and number of item categories vary over items,
+           rating is set to 0 (ie. the rating scale model is only for 
+	   items with the same number of categories).
+	3. If IMISS=1 and an item is not in the subdomain list, it will not
+           be included in the analysis.  This allows different subsets of 
+           items to be used without recreating the datafile and/or modifying 
+           the format statement.
+	4. A common error is failing to include the line in the def file that
+           specifies the maximum number of categories for each item.  Note that
+           this line is in the same format as the data and can often be 
+           confused for one of the actual data records.
+        5. In general, the prior is not required.
+        6. There are no longer any restictions on number of factors, items,
+           subdomains, ...
+
+Format of input file (*.def):
+
+	1. title1
+
+	2. title2
+
+	3. n,t,h,(ns(s),s=2,h),nor,nit,uni,iscr,ifreq,izero,iprior,rating,imiss
+
+        4. If (iprior.eq.1) read prior mean(s) and sd(s)
+
+		if(iprior.eq.1.and.uni.eq.1) then 
+			mean, sd
+	   	elseif(iprior.eq.1.and.uni.eq.2) then
+			mean1, mean2, sd1, sd2	
+	  	 endif	
+
+	5. Read items that load on each of the h-1 subdimensions
+
+		item(2,js),js=1,ns(2)
+		item(3,js),js=1,ns(3)
+		    .
+		    .
+		    .
+		item(h,js),js=1,ns(h)
+
+	6. Input data format (integer) statement 
+		
+		if(ifreq.eq.0)then for example:
+			(26i1)
+		elseif(ifreq.eq.1)
+			(26i1,f4.0)
+		endif
+
+	7. number of categories per item (in format described in 6.)
+		
+		ncat(j),j=1,n
+
+	8. Read nor data records using format in 6
+		
+		if(ifreq.eq.1)then
+			do l=1,nor
+	 		  (orth(l,j),j=1,n),r(l)
+			enddo
+		else
+			do l=1,nor
+	 		  (orth(l,j),j=1,n)
+			enddo
+		endif
+
+To Run:
+
+	Open a DOS window
+
+	Go to the directory where the program and def file are located
+        (e.g., CD \POLYBIF)
+
+	Type POLYBIF FILENAME at the DOS prompt
+
+		where FILENAME is the name of the input file described 
+		above with the extension DEF (eg. to run TEST1.DEF, 
+                enter POLYBIF TEST1 at the DOS prompt). 
+
+	Output is stored in FILNAME.OUT
+
+	Bayes estimates of latent variable scores (Primary and each of the h-1
+        subdomains) are in FILENAME.SCR, 2 lines per subject.  The first line
+        contains the h scores (e.g., abilities or impairment scores) and the 
+	second line contains the standard errors (posterior standard 
+        deviations).
+
